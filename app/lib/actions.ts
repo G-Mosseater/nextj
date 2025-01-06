@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+
 'use server';
 import { z } from 'zod';
 import { sql } from '@vercel/postgres';
@@ -19,9 +22,10 @@ const FormSchema = z.object({
   }),
   date: z.string(),
 });
+const CreateInvoice = FormSchema.omit({ id: true, date: true });
 
 export async function createInvoice(formData: FormData): Promise<void> {
-  const { customerId, amount, status } = FormSchema.parse({
+  const { customerId, amount, status } = CreateInvoice.parse({
       customerId: formData.get('customerId'),
       amount: formData.get('amount'),
       status: formData.get('status'),
@@ -43,7 +47,7 @@ export async function createInvoice(formData: FormData): Promise<void> {
 }
 
 export async function updateInvoice(id: string, formData: FormData) {
-  const { customerId, amount, status } = FormSchema.parse({
+  const { customerId, amount, status } = CreateInvoice.parse({
     customerId: formData.get('customerId'),
     amount: formData.get('amount'),
     status: formData.get('status'),
@@ -58,7 +62,7 @@ export async function updateInvoice(id: string, formData: FormData) {
         WHERE id = ${id}
       `;
   } catch (error) {
-    return { message: 'Database Error: Failed to Update Invoice.' };
+     console.log('Database Error: Failed to Update Invoice.')
   }
 
   revalidatePath('/dashboard/invoices');
@@ -69,9 +73,9 @@ export async function deleteInvoice(id: string) {
   try {
     await sql`DELETE FROM invoices WHERE id = ${id}`;
     revalidatePath('/dashboard/invoices');
-    return { message: 'Deleted Invoice.' };
+    console.log('Deleted invoice.')
   } catch (error) {
-    return { message: 'Database Error: Failed to Delete Invoice.' };
+    console.log('Database Error: Failed to Delete Invoice.')
   }
 }
 
@@ -90,3 +94,4 @@ export async function authenticate(prevState: string | undefined, formData: Form
     throw error;
   }
 }
+
